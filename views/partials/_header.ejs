@@ -18,6 +18,7 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
       <div class="navbar-nav ml-auto">
+        <p><%= username %></p>
         <form method="POST" action="/login">
           <input type="text" name="username" placeholder="Username"></input>
           <button type="submit" class="btn btn-secondary">Login</button>

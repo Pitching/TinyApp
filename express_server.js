@@ -17,12 +17,14 @@ app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cookieParser());
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase };
+  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
   res.render("urls_index", templateVars);
 });
 
@@ -31,7 +33,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies["username"] };
   res.render("urls_show", templateVars);
 });
 
@@ -52,7 +54,7 @@ app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
   const ranString = generateRandomString();
   urlDatabase[ranString] = req.body.longURL ;
-  const templateVars = { id: ranString, longURL: urlDatabase[ranString] };
+  const templateVars = { id: ranString, longURL: urlDatabase[ranString], username: req.cookies["username"] };
   res.render("urls_show", templateVars);
 });
 
@@ -67,7 +69,8 @@ app.post("/urls/:id", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  res.cookie('username', req.body.Username);
+  res.cookie('username', req.body.username);
+  res.redirect("/urls");
 })
 
 app.listen(PORT, () => {
