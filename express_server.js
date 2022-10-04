@@ -1,3 +1,4 @@
+const cookieParser = require('cookie-parser');
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -63,6 +64,10 @@ app.post("/urls/:id/delete", (req, res) => {
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.updateURL;
   res.redirect("/urls");
+})
+
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.Username);
 })
 
 app.listen(PORT, () => {
