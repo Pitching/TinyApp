@@ -26,8 +26,10 @@
             </h5>
           </form>
           <% } else { %>
+          <form method="GET" action="/register">
+            <button type="submit" class="btn btn-secondary mr-1">Register</button>
+          </form>
           <form method="GET" action="/login">
-            <input type="text" name="username" placeholder="Username"></input>
             <button type="submit" class="btn btn-secondary">Login</button>
           </form>
           <% } %>

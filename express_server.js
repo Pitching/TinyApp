@@ -51,7 +51,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookie["user_id"]] };
+  const templateVars = { user: users[req.cookies["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
@@ -78,6 +78,11 @@ app.get("/register", (req, res) => {
   res.render("urls_register", templateVars);
 })
 
+app.get("/login", (req, res) => {
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_login", templateVars);
+})
+
 app.post("/urls", (req, res) => {
   const ranString = generateRandomString(); // Generates a unique 6 character string that is assigned to the object and passed to the urls_show template
   urlDatabase[ranString] = req.body.longURL;
@@ -99,14 +104,14 @@ app.post("/register", (req, res) => {
   let UID = generateRandomUserID();
 
   if (!req.body.email || !req.body.password) {
-    return res.status(400).send("You shall not pass!!!");
+    res.status(400).send("You shall not pass!!!");
   } else if (lookupEmail(req.body.email, users)) {
-    return res.status(400).send("user with email found");
+    res.status(400).send("user with email found");
+  } else {
+    users[UID] = { id: UID, email: req.body.email, password: req.body.password };
+    res.cookie("user_id", UID);
+    res.redirect("/urls");
   }
-
-  users[UID] = { id: UID, email: req.body.email, password: req.body.password };
-  res.cookie("user_id", UID);
-  res.redirect("/urls");
 })
 
 app.post("/login", (req, res) => {
