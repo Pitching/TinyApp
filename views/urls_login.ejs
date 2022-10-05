@@ -15,19 +15,21 @@
   <header>
     <%- include('./partials/_header'); %>
   </header>
-  <h2>Login Form</h2>
-  <form method="POST" action="/register">
-    <div class="row" style="margin: auto">
+  <h2 style="margin-left: 40px">Login Form</h2>
+  <form method="POST" action="/login">
+    <div class="row" style="margin-left: 40px">
       <div class="form-group">
         <p>Email: <input type="email" name="email" class="form-control" /></p>
       </div>
     </div>
-    <div class="row" style="margin: auto">
+    <div class="row" style="margin-left: 40px">
       <div class="form-group">
         <p>Password: <input type="password" name="password" class="form-control" /></p>
       </div>
     </div>
-    <button type="submit" class="btn btn-success">Login</button>
+    <div class="row" style="margin-left: 40px">
+      <button type="submit" class="btn btn-success">Login</button>
+    </div>
   </form>
   <!-- Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"

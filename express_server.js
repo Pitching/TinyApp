@@ -41,10 +41,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.get("/", (req, res) => {
-  res.send("Hello!");
-});
-
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
   res.render("urls_index", templateVars);
@@ -58,14 +54,6 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.get("/u/:id", (req, res) => {
@@ -104,9 +92,9 @@ app.post("/register", (req, res) => {
   let UID = generateRandomUserID();
 
   if (!req.body.email || !req.body.password) {
-    res.status(400).send("You shall not pass!!!");
+    res.status(400).send("You must fill out both fields");
   } else if (lookupEmail(req.body.email, users)) {
-    res.status(400).send("user with email found");
+    res.status(400).send("User with email found");
   } else {
     users[UID] = { id: UID, email: req.body.email, password: req.body.password };
     res.cookie("user_id", UID);
@@ -115,12 +103,20 @@ app.post("/register", (req, res) => {
 })
 
 app.post("/login", (req, res) => {
-  res.cookie("username", req.body.username);
-  res.redirect("/urls");
+  const userCheck = lookupEmail(req.body.email, users);
+
+  if (!userCheck) {
+    res.status(403).send("User with email cannot be found");
+  } else if (userCheck && userCheck.password !== req.body.password) {
+    res.status(403).send("Incorrect password");
+  } else {
+    res.cookie("user_id", userCheck.id);
+    res.redirect("/urls");
+  }
 })
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("username");
+  res.clearCookie("user_id");
   res.redirect("/urls");
 })
 
