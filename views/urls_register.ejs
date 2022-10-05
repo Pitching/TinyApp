@@ -12,8 +12,11 @@
 </head>
 
 <body>
+  <header>
+    <%- include('./partials/_header'); %>
+  </header>
   <h2>Registration Form</h2>
-  <form method="POST" action="/register" >
+  <form method="POST" action="/register">
     <div class="row" style="margin: auto">
       <div class="form-group">
         <p>Email: <input type="email" name="email" class="form-control" /></p>

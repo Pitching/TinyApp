@@ -17,15 +17,29 @@ function generateRandomString() {
 }
 
 function generateRandomUserID() {
-  let r = Math.random().toString(16).slice(2);
+  let r;
+  do {
+    r = Math.random().toString(16).slice(2);
+  } while (users.r);
   return r;
+}
+
+const lookupEmail = function (emailExist, users) {
+
+  for (const userID in users) {
+    if (users[userID].email === emailExist) {
+      return users[userID];
+    }
+  }
+
+  return null;
 }
 
 app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(bodyParser.urlencoded({extended: true})); 
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -33,12 +47,11 @@ app.get("/", (req, res) => {
 
 app.get("/urls", (req, res) => {
   const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
-  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = {  user: users[req.cookie["user_id"]] };
+  const templateVars = { user: users[req.cookie["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
@@ -61,7 +74,8 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  res.render("urls_register");
+  const templateVars = { user: users[req.cookies["user_id"]] };
+  res.render("urls_register", templateVars);
 })
 
 app.post("/urls", (req, res) => {
@@ -82,12 +96,15 @@ app.post("/urls/:id", (req, res) => {
 })
 
 app.post("/register", (req, res) => {
-  let UID;
-  do {
-  UID = generateRandomUserID();
-  } while (users.UID)
+  let UID = generateRandomUserID();
 
-  users[UID] = { id: UID, email: req.body.email, password: req.body.password};
+  if (!req.body.email || !req.body.password) {
+    return res.status(400).send("You shall not pass!!!");
+  } else if (lookupEmail(req.body.email, users)) {
+    return res.status(400).send("user with email found");
+  }
+
+  users[UID] = { id: UID, email: req.body.email, password: req.body.password };
   res.cookie("user_id", UID);
   res.redirect("/urls");
 })
