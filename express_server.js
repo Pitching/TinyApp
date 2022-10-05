@@ -47,8 +47,12 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
-  res.render("urls_new", templateVars);
+  if (req.cookies["user_id"]) {
+    const templateVars = { user: users[req.cookies["user_id"]] };
+    res.render("urls_new", templateVars);
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -57,25 +61,41 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
+  if (urlDatabase[req.params.id]) {
+    const longURL = urlDatabase[req.params.id];
+    res.redirect(longURL);
+  } else {
+    res.status(400).send("Short URL does not exist.");
+  }
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
-  res.render("urls_register", templateVars);
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = { user: users[req.cookies["user_id"]] };
+    res.render("urls_register", templateVars);
+  }
 })
 
 app.get("/login", (req, res) => {
-  const templateVars = { user: users[req.cookies["user_id"]] };
-  res.render("urls_login", templateVars);
+  if (req.cookies["user_id"]) {
+    res.redirect("/urls");
+  } else {
+    const templateVars = { user: users[req.cookies["user_id"]] };
+    res.render("urls_login", templateVars);
+  }
 })
 
 app.post("/urls", (req, res) => {
-  const ranString = generateRandomString(); // Generates a unique 6 character string that is assigned to the object and passed to the urls_show template
-  urlDatabase[ranString] = req.body.longURL;
-  const templateVars = { id: ranString, longURL: urlDatabase[ranString], user: users[req.cookies["user_id"]] };
-  res.render("urls_show", templateVars);
+  if (req.cookies["user_id"]) {
+    const ranString = generateRandomString(); // Generates a unique 6 character string that is assigned to the object and passed to the urls_show template
+    urlDatabase[ranString] = req.body.longURL;
+    const templateVars = { id: ranString, longURL: urlDatabase[ranString], user: users[req.cookies["user_id"]] };
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(400).send("You must be logged in to shorten URL's");
+  }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
