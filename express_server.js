@@ -1,4 +1,5 @@
 const cookieParser = require('cookie-parser');
+const bodyParser = require('body-parser');
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -8,33 +9,41 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+const users = {};
+
 function generateRandomString() {
   let r = Math.random().toString(36).slice(2, 8);
+  return r;
+}
+
+function generateRandomUserID() {
+  let r = Math.random().toString(16).slice(2);
   return r;
 }
 
 app.set("view engine", "ejs");
 
 app.use(express.urlencoded({ extended: true }));
-
 app.use(cookieParser());
+app.use(bodyParser.urlencoded({extended: true})); 
 
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
 
 app.get("/urls", (req, res) => {
-  const templateVars = { urls: urlDatabase, username: req.cookies["username"] };
+  const templateVars = { urls: urlDatabase, user: users[req.cookies["user_id"]] };
+  console.log(templateVars);
   res.render("urls_index", templateVars);
 });
 
 app.get("/urls/new", (req, res) => {
-  const templateVars = {  username: req.cookies["username"] };
+  const templateVars = {  user: users[req.cookie["user_id"]] };
   res.render("urls_new", templateVars);
 });
 
 app.get("/urls/:id", (req, res) => {
-  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], username: req.cookies["username"] };
+  const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
@@ -52,15 +61,13 @@ app.get("/u/:id", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const templateVars = {  username: req.cookies["username"] };
-  res.render("urls_register", templateVars);
+  res.render("urls_register");
 })
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
-  const ranString = generateRandomString();
-  urlDatabase[ranString] = req.body.longURL ;
-  const templateVars = { id: ranString, longURL: urlDatabase[ranString], username: req.cookies["username"] };
+  const ranString = generateRandomString(); // Generates a unique 6 character string that is assigned to the object and passed to the urls_show template
+  urlDatabase[ranString] = req.body.longURL;
+  const templateVars = { id: ranString, longURL: urlDatabase[ranString], user: users[req.cookies["user_id"]] };
   res.render("urls_show", templateVars);
 });
 
@@ -71,6 +78,17 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
   urlDatabase[req.params.id] = req.body.updateURL;
+  res.redirect("/urls");
+})
+
+app.post("/register", (req, res) => {
+  let UID;
+  do {
+  UID = generateRandomUserID();
+  } while (users.UID)
+
+  users[UID] = { id: UID, email: req.body.email, password: req.body.password};
+  res.cookie("user_id", UID);
   res.redirect("/urls");
 })
 
