@@ -90,14 +90,9 @@ app.get("/urls/:id", (req, res) => {
     const templateVars = { id: req.params.id, longURL: requestedShortURL.longURL, user: users[loggedInCheck] };
     res.render("urls_show", templateVars);
 
-  } else if (loggedInCheck && !matches[req.params.id]) {
-
-    res.status(400).send("You do not have permission to edit this short URL");
-
   } else {
 
-    const templateVars = { user: users[loggedInCheck] };
-    res.render("urls_error", templateVars);
+    res.status(400).send("You do not have permission to edit this short URL");
 
   }
 });
@@ -121,7 +116,7 @@ app.get("/register", (req, res) => {
   if (users[req.cookies["user_id"]]) {
 
     res.redirect("/urls");
-    
+
   } else {
 
     const templateVars = { user: users[req.cookies["user_id"]] };
@@ -163,9 +158,19 @@ app.post("/urls", (req, res) => {
 
 app.post("/urls/:id/delete", (req, res) => {
 
-  delete urlDatabase[req.params.id];
-  res.redirect("/urls");
+  const loggedInCheck = req.cookies["user_id"];
+  const matches = urlsForUser(req.cookies["user_id"], urlDatabase)
 
+  if (users[loggedInCheck] && matches[req.params.id]) {
+
+    delete urlDatabase[req.params.id];
+    res.redirect("/urls");
+
+  } else {
+
+    res.status(400).send("You do not have permission to delete this short URL");
+
+  }
 })
 
 app.post("/urls/:id", (req, res) => {
