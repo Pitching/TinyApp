@@ -24,25 +24,32 @@
       <h3>My URLs</h3>
       <table class="table">
         <thead>
-          <tr>
-            <th scope="col">Short URL ID</th>
-            <th scope="col">Long URL</th>
-            <th scope="col">Edit</th>
-            <th scope="col">Delete</th>
-          </tr>
-        </thead>
-        <tbody>
-          <% for (let id in urls) { %>
+            <% if (!user) { %>
+              <div class="alert alert-danger" role="alert">
+                  Please <a href="/login" class="alert-link">Login</a> or <a href="/register" class="alert-link">Register</a> to see your shortened URLs.
+              </div>
+            <% } else { %>
             <tr>
-                <td><%= id %></td>
-                <td><%= urls[id] %></td>
-                <form method="GET" action="/urls/<%= id %>">
-                  <td><button type="submit" class="btn btn-primary">Edit</button></td>
-                </form>
-                <form method="POST" action="/urls/<%= id %>/delete">
-                  <td><button type="submit" class="btn btn-danger">Delete</button></td>
-                </form>
+              <th scope="col">Short URL ID</th>
+              <th scope="col">Long URL</th>
+              <th scope="col">Edit</th>
+              <th scope="col">Delete</th>
             </tr>
+          </thead>
+          <tbody>
+
+            <% for (let id in urls) { %>
+              <tr>
+                  <td><%= id %></td>
+                  <td><%= urls[id] %></td>
+                  <form method="GET" action="/urls/<%= id %>">
+                    <td><button type="submit" class="btn btn-primary">Edit</button></td>
+                  </form>
+                  <form method="POST" action="/urls/<%= id %>/delete">
+                    <td><button type="submit" class="btn btn-danger">Delete</button></td>
+                  </form>
+              </tr>
+            <% } %>
           <% } %>
         </tbody>
       </table>

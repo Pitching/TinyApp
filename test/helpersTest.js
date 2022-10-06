@@ -1,6 +1,6 @@
 const { assert } = require('chai');
 
-const lookUpEmail = require('../helpers');
+const { lookUpEmail, cookieCheck, generateRandomString, generateRandomUserID, urlsForUser } = require('../helpers');
 
 const testUsers = {
   "userRandomID": {

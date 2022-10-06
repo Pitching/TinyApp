@@ -4,7 +4,12 @@ const express = require("express");
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
-const lookUpEmail = require('./helpers');
+
+const { lookUpEmail, cookieCheck, generateRandomString, generateRandomUserID, urlsForUser } = require('./helpers');
+
+const urlDatabase = {};
+
+const users = {};
 
 app.set("view engine", "ejs");
 
@@ -18,58 +23,14 @@ app.use(cookieSession({
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
-const urlDatabase = {};
-
-const users = {};
-
-const cookieCheck = function(cookie, users) {
-  for (const eachUser in users) {
-    if (cookie === eachUser) {
-      return true;
-    }
-  }
-  return false;
-};
-
-function generateRandomString() {
-  let r = Math.random().toString(36).slice(2, 8);
-  return r;
-
-}
-
-function generateRandomUserID() {
-  let r;
-  do {
-    r = Math.random().toString(16).slice(2);
-  } while (users.r);
-  return r;
-}
-
-const urlsForUser = function (id, urlDatabase) {
-  let matches = {}
-
-  for (let shortID in urlDatabase) {
-    if (urlDatabase[shortID].userID === id) {
-      matches[shortID] = urlDatabase[shortID].longURL;
-    }
-  }
-
-  return matches;
-}
-
 app.get("/urls", (req, res) => {
 
-  if (cookieCheck(req.session.user_id, users)) {
+  const templateVars = {
+    urls: urlsForUser(req.session.user_id, urlDatabase),
+    user: users[req.session.user_id]
+  };
+  res.render("urls_index", templateVars);
 
-    const templateVars = { urls: urlsForUser(req.session.user_id, urlDatabase), user: users[req.session.user_id] };
-    res.render("urls_index", templateVars);
-
-  } else {
-
-    const templateVars = { user: users[cookieCheck()] };
-    res.render("urls_error", templateVars);
-
-  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -96,11 +57,16 @@ app.get("/urls/:id", (req, res) => {
     const templateVars = { id: req.params.id, longURL: requestedShortURL.longURL, user: users[req.session.user_id] };
     res.render("urls_show", templateVars);
 
+  } else if (!matches[req.params.id]) {
+
+    res.status(400).send("This URL does not exist");
+
   } else {
 
     res.status(400).send("You do not have permission to edit this short URL");
 
   }
+  
 });
 
 app.get("/u/:id", (req, res) => {
@@ -147,19 +113,11 @@ app.get("/login", (req, res) => {
 
 app.post("/urls", (req, res) => {
 
-  if (cookieCheck(req.session.user_id, users)) {
+  const ranString = generateRandomString(); // Generates a unique 6 character string that is assigned to the object and passed to the urls_show template
+  urlDatabase[ranString] = { longURL: req.body.longURL, userID: req.session.user_id };
+  const templateVars = { id: ranString, longURL: urlDatabase[ranString].longURL, user: users[req.session.user_id] };
+  res.render("urls_show", templateVars);
 
-    const ranString = generateRandomString(); // Generates a unique 6 character string that is assigned to the object and passed to the urls_show template
-    urlDatabase[ranString] = { longURL: req.body.longURL, userID: req.session.user_id };
-    const templateVars = { id: ranString, longURL: urlDatabase[ranString].longURL, user: users[req.session.user_id] };
-    res.render("urls_show", templateVars);
-
-  } else {
-
-    const templateVars = { user: users[req.session.user_id] };
-    res.render("urls_error", templateVars);
-
-  }
 });
 
 app.post("/urls/:id/delete", (req, res) => {
@@ -180,22 +138,14 @@ app.post("/urls/:id/delete", (req, res) => {
 
 app.post("/urls/:id", (req, res) => {
 
-  if (cookieCheck(req.session.user_id, users)) {
-
     urlDatabase[req.params.id].longURL = req.body.updateURL;
     res.redirect("/urls");
 
-  } else {
-
-    const templateVars = { user: users[req.session.user_id] };
-    res.render("urls_error", templateVars);
-
-  }
 })
 
 app.post("/register", (req, res) => {
 
-  const UID = generateRandomUserID();
+  const UID = generateRandomUserID(users);
 
   if (!req.body.email || !req.body.password) {
 
@@ -223,7 +173,7 @@ app.post("/login", (req, res) => {
 
     res.status(403).send("User with email cannot be found");
 
-  } else if (userCheck && !bcrypt.compareSync(req.body.password, userCheck.password)) {
+  } else if (userCheck && !(bcrypt.compareSync(req.body.password, users[userCheck].password))) {
 
     res.status(403).send("Incorrect password");
 
