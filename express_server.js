@@ -1,8 +1,15 @@
 const cookieParser = require('cookie-parser');
 const bodyParser = require('body-parser');
 const express = require("express");
+const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
+
+app.set("view engine", "ejs");
+
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 const urlDatabase = {};
 
@@ -43,12 +50,6 @@ const urlsForUser = function (id, urlDatabase) {
 
   return matches;
 }
-
-app.set("view engine", "ejs");
-
-app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/urls", (req, res) => {
 
@@ -202,9 +203,10 @@ app.post("/register", (req, res) => {
 
   } else {
 
-    users[UID] = { id: UID, email: req.body.email, password: req.body.password };
+    users[UID] = { id: UID, email: req.body.email, password: bcrypt.hashSync(req.body.password, 10) };
     res.cookie("user_id", UID);
     res.redirect("/urls");
+    console.log(users);
 
   }
 })
@@ -217,7 +219,7 @@ app.post("/login", (req, res) => {
 
     res.status(403).send("User with email cannot be found");
 
-  } else if (userCheck && userCheck.password !== req.body.password) {
+  } else if (userCheck && !bcrypt.compareSync(req.body.password, userCheck.password)) {
 
     res.status(403).send("Incorrect password");
 
