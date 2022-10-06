@@ -1,3 +1,4 @@
+// All dependacies for project
 const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
 const express = require("express");
@@ -5,10 +6,11 @@ const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
 
-const { lookUpEmail, cookieCheck, generateRandomString, generateRandomUserID, urlsForUser } = require('./helpers');
+// Import functions from helpers
+const { lookUpEmail, cookieCheck, generateRandomShortURL, generateRandomUserID, urlsForUser } = require('./helpers');
 
+// url Database and the user Database objects
 const urlDatabase = {};
-
 const users = {};
 
 app.set("view engine", "ejs");
@@ -23,6 +25,7 @@ app.use(cookieSession({
 
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Populates list of urls available to the user. Will be prompted to login via urls_index if user is undefined
 app.get("/urls", (req, res) => {
 
   const templateVars = {
@@ -33,6 +36,8 @@ app.get("/urls", (req, res) => {
 
 });
 
+// Form for creating a new URL, if there are no cookies or a cookie is detected but does not match one of the users, 
+// client is redirected to login page instead
 app.get("/urls/new", (req, res) => {
 
   if (cookieCheck(req.session.user_id, users)) {
@@ -47,6 +52,9 @@ app.get("/urls/new", (req, res) => {
   }
 });
 
+// Shows the shortened url created in more detail and allows a new long URL to be populated on the short URL. 
+// If the short URL does not exist, error 400.
+// If the user does not own the short URL, error 400.
 app.get("/urls/:id", (req, res) => {
 
   const requestedShortURL = urlDatabase[req.params.id];
@@ -54,21 +62,27 @@ app.get("/urls/:id", (req, res) => {
 
   if (cookieCheck(req.session.user_id, users) && matches[req.params.id]) {
 
-    const templateVars = { id: req.params.id, longURL: requestedShortURL.longURL, user: users[req.session.user_id] };
+    const templateVars = {
+      id: req.params.id,
+      longURL: requestedShortURL.longURL,
+      user: users[req.session.user_id]
+    };
     res.render("urls_show", templateVars);
 
-  } else if (!matches[req.params.id]) {
+  } else if (cookieCheck(req.session.user_id, users) && !urlDatabase[req.params.id]) {
 
     res.status(400).send("This URL does not exist");
 
   } else {
 
-    res.status(400).send("You do not have permission to edit this short URL");
+    res.status(400).send("You do not have permission to edit this short URL or it is not available");
 
   }
-  
+
 });
 
+// Directs the client to the long URl the short URL is associated with.
+// If no short URL exists, error 400.
 app.get("/u/:id", (req, res) => {
 
   if (urlDatabase[req.params.id]) {
@@ -83,6 +97,8 @@ app.get("/u/:id", (req, res) => {
   }
 });
 
+// Registration page where user can sign up
+// If client is logged in, redirect to /urls instead
 app.get("/register", (req, res) => {
 
   if (cookieCheck(req.session.user_id, users)) {
@@ -97,6 +113,8 @@ app.get("/register", (req, res) => {
   }
 })
 
+// Login page where user can log in
+// If client is logged in, redirect to /urls instead
 app.get("/login", (req, res) => {
 
   if (cookieCheck(req.session.user_id, users)) {
@@ -111,15 +129,26 @@ app.get("/login", (req, res) => {
   }
 })
 
+// Post submission for creating a new URL from the urls_new ejs page
+// Assigns the shortURL to the databse with a longURL as well as the user ID that created it
 app.post("/urls", (req, res) => {
 
-  const ranString = generateRandomString(); // Generates a unique 6 character string that is assigned to the object and passed to the urls_show template
-  urlDatabase[ranString] = { longURL: req.body.longURL, userID: req.session.user_id };
-  const templateVars = { id: ranString, longURL: urlDatabase[ranString].longURL, user: users[req.session.user_id] };
+  const ranString = generateRandomShortURL(urlDatabase);
+  urlDatabase[ranString] = {
+    longURL: req.body.longURL,
+    userID: req.session.user_id
+  };
+  const templateVars = {
+    id: ranString,
+    longURL: urlDatabase[ranString].longURL,
+    user: users[req.session.user_id]
+  };
   res.render("urls_show", templateVars);
 
 });
 
+// Post submission for deleting a url and its short ID from the /urls page
+// Unless the user is authenticated and the id exists in the database, error 400
 app.post("/urls/:id/delete", (req, res) => {
 
   const matches = urlsForUser(req.session.user_id, urlDatabase)
@@ -136,13 +165,27 @@ app.post("/urls/:id/delete", (req, res) => {
   }
 })
 
+// Post submission for editing a url and its short ID from the /urls page
+// Unless the user is authenticated and the id exists in the database, error 400
 app.post("/urls/:id", (req, res) => {
+
+  if (cookieCheck(req.session.user_id, users) && matches[req.params.id]) {
 
     urlDatabase[req.params.id].longURL = req.body.updateURL;
     res.redirect("/urls");
 
+  } else {
+
+    res.status(400).send("You do not have permission to edit this short URL");
+
+  }
+
 })
 
+// Form submission for submitting a registration form and adding the user to the database
+// If either field is missing, error 400
+// If the email already exists in the database, error 400
+// If none of the above, create account successfully
 app.post("/register", (req, res) => {
 
   const UID = generateRandomUserID(users);
@@ -157,14 +200,21 @@ app.post("/register", (req, res) => {
 
   } else {
 
-    users[UID] = { id: UID, email: req.body.email, password: bcrypt.hashSync(req.body.password, 10) };
+    users[UID] = {
+      id: UID,
+      email: req.body.email,
+      password: bcrypt.hashSync(req.body.password, 10)
+    };
     req.session.user_id = UID;
     res.redirect("/urls");
-    console.log(users);
 
   }
 })
 
+// Form for submitting the login page with the appropriate credentials
+// If user does not exist, error 403
+// If hashed password does not match, error 403
+// if none of the above, successful login
 app.post("/login", (req, res) => {
 
   const userCheck = lookUpEmail(req.body.email, users);
@@ -173,18 +223,19 @@ app.post("/login", (req, res) => {
 
     res.status(403).send("User with email cannot be found");
 
-  } else if (userCheck && !(bcrypt.compareSync(req.body.password, users[userCheck].password))) {
+  } else if (userCheck && !bcrypt.compareSync(req.body.password, users[userCheck].password)) {
 
     res.status(403).send("Incorrect password");
 
   } else {
 
-    req.session.user_id = userCheck.id;
+    req.session.user_id = userCheck;
     res.redirect("/urls");
 
   }
 })
 
+// logout form and clear the cookie
 app.post("/logout", (req, res) => {
 
   req.session = null;
