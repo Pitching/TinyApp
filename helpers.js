@@ -1,4 +1,4 @@
-const lookupEmail = function (emailExist, users) {
+const lookUpEmail = function (emailExist, users) {
 
   for (const userID in users) {
     if (users[userID].email === emailExist) {
@@ -9,4 +9,4 @@ const lookupEmail = function (emailExist, users) {
   return null;
 }
 
-module.exports = lookupEmail;
+module.exports = lookUpEmail;

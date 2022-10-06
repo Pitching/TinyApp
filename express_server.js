@@ -4,7 +4,7 @@ const express = require("express");
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
-const lookupEmail = require('./helpers');
+const lookUpEmail = require('./helpers');
 
 app.set("view engine", "ejs");
 
@@ -201,7 +201,7 @@ app.post("/register", (req, res) => {
 
     res.status(400).send("You must fill out both fields");
 
-  } else if (lookupEmail(req.body.email, users)) {
+  } else if (lookUpEmail(req.body.email, users)) {
 
     res.status(400).send("User with email found");
 
@@ -217,7 +217,7 @@ app.post("/register", (req, res) => {
 
 app.post("/login", (req, res) => {
 
-  const userCheck = lookupEmail(req.body.email, users);
+  const userCheck = lookUpEmail(req.body.email, users);
 
   if (!userCheck) {
 
