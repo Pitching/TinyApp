@@ -8,7 +8,7 @@
       integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
       crossorigin="anonymous"
     />
-    <title>URL - TinyApp Example</title>
+    <title>URL</title>
   </head>
 
   <body>
@@ -29,7 +29,7 @@
         </p>
       </div>
       <div class="card-footer text-muted">
-        <form method="POST" action="/urls/<%= id %>">
+        <form method="POST" action="/urls/<%= id %>?_method=PUT">
           <h3>Edit</h3>
           <p class="card-text">
             New URL: <input type="text" name="updateURL"></input>

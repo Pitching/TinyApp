@@ -3,8 +3,10 @@ const cookieSession = require('cookie-session');
 const bodyParser = require('body-parser');
 const express = require("express");
 const bcrypt = require('bcryptjs');
-const app = express();
+const methodOverride = require('method-override');
 const PORT = 8080; // default port 8080
+
+const app = express();
 
 // Import functions from helpers
 const { lookUpEmail, cookieCheck, generateRandomShortURL, generateRandomUserID, urlsForUser } = require('./helpers');
@@ -14,18 +16,17 @@ const urlDatabase = {};
 const users = {};
 
 app.set("view engine", "ejs");
-
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.urlencoded({ extended: true }));
-
+app.use(methodOverride('_method'));
 app.use(cookieSession({
   name: 'session',
   keys: ['ChocolateChipCookie'],
   maxAge: 24 * 60 * 60 * 1000
 }));
 
-app.use(bodyParser.urlencoded({ extended: true }));
-
-// Populates list of urls available to the user. Will be prompted to login via urls_index if user is undefined
+// Populates list of urls available to the user.
+// Will be prompted to login via urls_index if user is undefined
 app.get("/urls", (req, res) => {
 
   const templateVars = {
@@ -49,7 +50,7 @@ app.get("/urls/new", (req, res) => {
 
     res.redirect("/login");
 
-  }
+  };
 });
 
 // Shows the shortened url created in more detail and allows a new long URL to be populated on the short URL. 
@@ -58,7 +59,7 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
 
   const requestedShortURL = urlDatabase[req.params.id];
-  const matches = urlsForUser(req.session.user_id, urlDatabase)
+  const matches = urlsForUser(req.session.user_id, urlDatabase);
 
   if (cookieCheck(req.session.user_id, users) && matches[req.params.id]) {
 
@@ -77,7 +78,7 @@ app.get("/urls/:id", (req, res) => {
 
     res.status(400).send("You do not have permission to edit this short URL or it is not available");
 
-  }
+  };
 
 });
 
@@ -94,7 +95,7 @@ app.get("/u/:id", (req, res) => {
 
     res.status(400).send("Short URL does not exist.");
 
-  }
+  };
 });
 
 // Registration page where user can sign up
@@ -110,8 +111,8 @@ app.get("/register", (req, res) => {
     const templateVars = { user: users[req.session.user_id] };
     res.render("urls_register", templateVars);
 
-  }
-})
+  };
+});
 
 // Login page where user can log in
 // If client is logged in, redirect to /urls instead
@@ -126,12 +127,12 @@ app.get("/login", (req, res) => {
     const templateVars = { user: users[req.session.user_id] };
     res.render("urls_login", templateVars);
 
-  }
-})
+  };
+});
 
-// Post submission for creating a new URL from the urls_new ejs page
+// Form submission for creating a new URL from the urls_new ejs page
 // Assigns the shortURL to the databse with a longURL as well as the user ID that created it
-app.post("/urls", (req, res) => {
+app.put("/urls", (req, res) => {
 
   const ranString = generateRandomShortURL(urlDatabase);
   urlDatabase[ranString] = {
@@ -149,9 +150,9 @@ app.post("/urls", (req, res) => {
 
 // Post submission for deleting a url and its short ID from the /urls page
 // Unless the user is authenticated and the id exists in the database, error 400
-app.post("/urls/:id/delete", (req, res) => {
+app.delete("/urls/:id/delete", (req, res) => {
 
-  const matches = urlsForUser(req.session.user_id, urlDatabase)
+  const matches = urlsForUser(req.session.user_id, urlDatabase);
 
   if (cookieCheck(req.session.user_id, users) && matches[req.params.id]) {
 
@@ -162,12 +163,14 @@ app.post("/urls/:id/delete", (req, res) => {
 
     res.status(400).send("You do not have permission to delete this short URL");
 
-  }
-})
+  };
+});
 
-// Post submission for editing a url and its short ID from the /urls page
+// Form submission for editing a url and its short ID from the /urls page
 // Unless the user is authenticated and the id exists in the database, error 400
-app.post("/urls/:id", (req, res) => {
+app.put("/urls/:id", (req, res) => {
+
+  const matches = urlsForUser(req.session.user_id, urlDatabase);
 
   if (cookieCheck(req.session.user_id, users) && matches[req.params.id]) {
 
@@ -178,15 +181,15 @@ app.post("/urls/:id", (req, res) => {
 
     res.status(400).send("You do not have permission to edit this short URL");
 
-  }
+  };
 
-})
+});
 
 // Form submission for submitting a registration form and adding the user to the database
 // If either field is missing, error 400
 // If the email already exists in the database, error 400
 // If none of the above, create account successfully
-app.post("/register", (req, res) => {
+app.put("/register", (req, res) => {
 
   const UID = generateRandomUserID(users);
 
@@ -208,14 +211,14 @@ app.post("/register", (req, res) => {
     req.session.user_id = UID;
     res.redirect("/urls");
 
-  }
-})
+  };
+});
 
 // Form for submitting the login page with the appropriate credentials
 // If user does not exist, error 403
 // If hashed password does not match, error 403
 // if none of the above, successful login
-app.post("/login", (req, res) => {
+app.put("/login", (req, res) => {
 
   const userCheck = lookUpEmail(req.body.email, users);
 
@@ -232,16 +235,16 @@ app.post("/login", (req, res) => {
     req.session.user_id = userCheck;
     res.redirect("/urls");
 
-  }
-})
+  };
+});
 
 // logout form and clear the cookie
-app.post("/logout", (req, res) => {
+app.put("/logout", (req, res) => {
 
   req.session = null;
   res.redirect("/urls");
 
-})
+});
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
