@@ -54,7 +54,7 @@ const urlsForUser = function (id, urlDatabase) {
 
   for (let shortID in urlDatabase) {
     if (urlDatabase[shortID].userID === id) {
-      matches[shortID] = urlDatabase[shortID].longURL;
+      matches[shortID] = urlDatabase[shortID];
     }
   }
 

@@ -1,6 +1,21 @@
 const { assert } = require('chai');
 
-const { lookUpEmail, cookieCheck, generateRandomString, generateRandomUserID, urlsForUser } = require('../helpers');
+const { lookUpEmail, cookieCheck, urlsForUser } = require('../helpers');
+
+const testUrlDatabase = {
+  "ekd72w": {
+    longURL: "http://youtube.com",
+    userID: "userRandomID"
+  },  
+  "1234fe": {
+    longURL: "http://youtube2.com",
+    userID: "userRandomID"
+  },
+  "w9eksa": {
+    longUR: "http://google.com",
+    userID: "user2RandomID"
+  }
+};
 
 const testUsers = {
   "userRandomID": {
@@ -27,6 +42,47 @@ describe('getUserByEmail', function() {
     const user = lookUpEmail("unavailable@test.ca", testUsers);
     const expectedUserID = undefined;
     assert.equal(user, expectedUserID);
+  });
+
+});
+
+describe('cookieCheck', function() {
+
+  it('should return true if a user with valid id is found', function() {
+    const user = cookieCheck("userRandomID", testUsers);
+    const expectedUserID = true;
+    assert.equal(user, expectedUserID);
+  });
+
+  it('should return false if there are no users with provided id', function() {
+    const user = cookieCheck("unavailable@test.ca", testUsers);
+    const expectedUserID = false;
+    assert.equal(user, expectedUserID);
+  });
+
+});
+
+describe('urlsForUser', function() {
+
+  it('should return an object with the url(s) for the user ID', function() {
+    const sites = urlsForUser("userRandomID", testUrlDatabase);
+    const expectedUserID = {
+      "ekd72w": {
+        longURL: "http://youtube.com",
+        userID: "userRandomID"
+      },  
+      "1234fe": {
+        longURL: "http://youtube2.com",
+        userID: "userRandomID"
+      }
+    };
+    assert.deepEqual(sites, expectedUserID);
+  });
+
+  it('should return an empty object with for the user ID if no associated urls found', function() {
+    const sites = urlsForUser("user3RandomID", testUrlDatabase);
+    const expectedUserID = {}
+    assert.deepEqual(sites, expectedUserID);
   });
 
 });
