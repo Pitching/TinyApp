@@ -1,8 +1,8 @@
-const lookUpEmail = function (emailExist, users) {
+const lookUpEmail = function (email, users) {
 
   for (const userID in users) {
-    if (users[userID].email === emailExist) {
-      return users[userID];
+    if (users[userID].email === email) {
+      return users[userID].id;
     }
   }
 
