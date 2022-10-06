@@ -4,6 +4,7 @@ const express = require("express");
 const bcrypt = require('bcryptjs');
 const app = express();
 const PORT = 8080; // default port 8080
+const lookupEmail = require('./helpers');
 
 app.set("view engine", "ejs");
 
@@ -42,17 +43,6 @@ function generateRandomUserID() {
     r = Math.random().toString(16).slice(2);
   } while (users.r);
   return r;
-}
-
-const lookupEmail = function (emailExist, users) {
-
-  for (const userID in users) {
-    if (users[userID].email === emailExist) {
-      return users[userID];
-    }
-  }
-
-  return null;
 }
 
 const urlsForUser = function (id, urlDatabase) {
