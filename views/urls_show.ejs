@@ -32,13 +32,33 @@
         <form method="POST" action="/urls/<%= id %>?_method=PUT">
           <h3>Edit</h3>
           <p class="card-text">
-            New URL: <input type="text" name="updateURL"></input>
+            New URL: <input type="text" name="updateURL" value=<%= longURL %>/>
             <button type="submit">Submit</button>
           </p>
         </form>
         <% } %>
       </div>
+      <div class="card-footer">
+      <h5 class="font-weight-bold text-center">Visits: <%= counter %></h5>
+      <h5 class="font-weight-bold text-center"><i>Unique</i> Visits: <%= uniqueVisitors %></h5>
+      </div>
     </div>
+    <table class="table">
+      <thead>
+          <tr>
+            <th scope="col">Visitor</th>
+            <th scope="col">Time Stamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% for (let each of timestampTracker) { %>
+            <tr>
+                <td><%= each[0] %></td>
+                <td><%= each[1] %></td>
+            </tr>
+          <% } %>
+      </tbody>
+    </table>
     <!-- Bootstrap JS -->
     <script
       src="https://code.jquery.com/jquery-3.3.1.slim.min.js"
