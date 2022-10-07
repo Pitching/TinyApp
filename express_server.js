@@ -97,12 +97,12 @@ app.get("/u/:id", (req, res) => {
   }
 
   if (!url.uniqueVisitors.includes(visitor_id)) {
-    url.uniqueVisitors.push(visitor_id);
+    url.uniqueVisitors.push(visitor_id);            //  Increasing unique visit counter if the visitor id is not already in the array.
   }
 
-  const now = new Date().toLocaleDateString()
-  timestampTracker.push([visitor_id, now])
-  url.counter++;
+  const now = new Date().toLocaleDateString() //  Time stamping the current date
+  timestampTracker.push([visitor_id, now])    //  pushing this date into an array so that it can show up in urls_show
+  url.counter++;                              //  Increasing counter per non-unique visit
   res.redirect(url.longURL);
 });
 
