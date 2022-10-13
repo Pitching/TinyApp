@@ -5,11 +5,11 @@ available to user that created them.
 
 ## Edit Page
 
-!["Screeshot of the app in the desktop view"](https://github.com/Pitching/tweeter/blob/master/docs/desktop-tweeter.png?raw=true)
+!["Screeshot of the app in the Edit Page"](https://github.com/Pitching/TinyApp/blob/master/docs/Edit.png?raw=true)
 
 ## Index Page
 
-!["Screeshot of the app in the desktop view"](https://github.com/Pitching/tweeter/blob/master/docs/tweeter-mobile.png?raw=true)
+!["Screeshot of the app in the Index Page"](https://github.com/Pitching/TinyApp/blob/master/docs/Index.png?raw=true)
 
 ## Getting Started
 
